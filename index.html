@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nur × Yatan.exe | AY 11:11 Finance</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
+ 
+<style> 
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; }
+body {
+  min-height: 100vh;
+  display: flex; justify-content: center; align-items: center;
+  font-family: Segoe UI, sans-serif;
+  color: white; overflow: hidden;
+  cursor: none;
+}
+#galaxyCanvas { position: fixed; top:0; left:0; width:100%; height:100%; z-index:1; display:block; }
+ 
+/* CUSTOM CURSOR */
+#cursor {
+  position: fixed; width: 18px; height: 18px;
+  border: 1.5px solid #f0f0ff;
+  border-radius: 50%; pointer-events: none;
+  z-index: 9999; transition: transform 0.1s, background 0.1s;
+  transform: translate(-50%,-50%);
+  box-shadow: 0 0 8px #f0f0ff, 0 0 16px rgba(240,240,255,0.4);
+}
+#cursor.click { background: rgba(240,240,255,0.35); transform: translate(-50%,-50%) scale(0.7); }
+#cursor-dot {
+  position: fixed; width: 4px; height: 4px;
+  background: #f0f0ff; border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  box-shadow: 0 0 6px #f0f0ff;
+}
+ 
+/* THEME SWITCHER */
+#theme-bar {
+  position: fixed; top: 14px; right: 18px; z-index: 200;
+  display: flex; gap: 8px;
+}
+.theme-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  cursor: pointer; border: 2px solid rgba(255,255,255,0.2);
+  transition: 0.3s; box-shadow: 0 0 6px rgba(255,255,255,0.2);
+}
+.theme-dot:hover { transform: scale(1.3); border-color: white; }
+.theme-dot.t-galaxy { background: radial-gradient(#3a0080,#000020); }
+.theme-dot.t-rosegold{ background: radial-gradient(#cc4477,#00000e); }
+.theme-dot.t-ocean   { background: radial-gradient(#001f5b,#000010); }
+ 
+/* SOUND TOGGLE */
+#sound-btn {
+  position: fixed; top: 14px; left: 18px; z-index: 200;
+  background: rgba(20,20,40,0.7); border: 1px solid rgba(255,255,255,0.15);
+  color: #f0f0ff; padding: 5px 10px; border-radius: 20px;
+  cursor: pointer; font-size: 13px; backdrop-filter: blur(10px);
+}
+ 
+.container {
+  position: relative; z-index: 100;
+  background: rgba(8,8,20,0.50);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 35px; border-radius: 25px;
+  width: min(480px, 95vw);
+  box-shadow: 0 0 30px rgba(240,240,255,0.3), 0 0 80px rgba(210,160,120,0.3);
+  animation: floatConsole 8s ease-in-out infinite, consoleGlow 6s ease-in-out infinite;
+  max-height: 96vh; overflow-y: auto;
+}
+.container::-webkit-scrollbar { width: 0; background: transparent; }
+.container { scrollbar-width: none; }
+ 
+.brand-header { text-align: center; margin-bottom: 10px; }
+ 
+.brand-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #f0f0ff;
+  text-shadow: 0 0 18px #f0f0ff, 0 0 40px rgba(240,240,255,0.4);
+  font-family: 'Orbitron', sans-serif;
+  text-transform: uppercase;
+}
+ 
+.brand-sub {
+  font-size: 13px;
+  letter-spacing: 6px;
+  color: #f4a7c3;
+  text-shadow: 0 0 18px #f4a7c3, 0 0 35px rgba(244,167,195,0.45);
+  margin-top: 3px;
+  font-family: Segoe UI, sans-serif;
+}
+ 
+.brand-function {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(240,240,255,0.45);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+ 
+.brand-tagline {
+  font-size: 10px;
+  color: rgba(240,240,255,0.22);
+  font-style: italic;
+  letter-spacing: 1px;
+  margin-top: 5px;
+  margin-bottom: 4px;
+}
+ 
+.status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 4px; margin-bottom: 4px;
+  border-bottom: 0.5px solid rgba(240,240,255,0.07);
+}
+.status-left { display: flex; align-items: center; gap: 7px; }
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #6dffb3; box-shadow: 0 0 6px #6dffb3;
+  animation: dotPulse 2.5s ease-in-out infinite;
+}
+.status-label {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(240,240,255,0.35); font-family: Segoe UI, sans-serif;
+}
+.status-time {
+  font-size: 11px; letter-spacing: 2px;
+  color: rgba(240,240,255,0.4); font-family: 'Courier New', monospace;
+  transition: all 0.5s ease;
+}
+.status-time.magic {
+  font-size: 13px; color: #f0f0ff;
+  text-shadow: 0 0 12px #f0f0ff, 0 0 30px rgba(240,240,255,0.5);
+  letter-spacing: 4px;
+}
+.status-dot.magic {
+  background: #f0f0ff; box-shadow: 0 0 12px #f0f0ff;
+  animation: dotPulseMagic 0.8s ease-in-out infinite;
+}
+.wish-msg {
+  text-align: center; font-size: 10px; letter-spacing: 3px;
+  color: #e8956d; font-style: italic; font-family: Segoe UI, sans-serif;
+  height: 0; overflow: hidden; opacity: 0;
+  transition: all 0.6s ease; margin-bottom: 0;
+}
+.wish-msg.show {
+  height: 18px; opacity: 1; margin-bottom: 6px;
+  animation: wishPulse 2s ease-in-out infinite;
+}
+#hearts-container {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; overflow: hidden; z-index: 200;
+}
+.heart {
+  position: absolute; font-size: 14px;
+  animation: heartFloat 2.5s ease-out forwards;
+  pointer-events: none; opacity: 0;
+}
+@keyframes heartFloat {
+  0%   { opacity:0; transform: translateY(0) scale(0.5); }
+  20%  { opacity:1; transform: translateY(-20px) scale(1); }
+  100% { opacity:0; transform: translateY(-120px) scale(0.7); }
+}
+@keyframes dotPulse {
+  0%,100%{ opacity:1; } 50%{ opacity:0.35; }
+}
+@keyframes dotPulseMagic {
+  0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.6); opacity:0.5; }
+}
+@keyframes wishPulse {
+  0%,100%{ opacity:0.6; } 50%{ opacity:1; }
+}
+.clock { display: none; }
+ 
+.mode-buttons { text-align:center; margin-bottom:15px; }
+.mode-buttons button {
+  padding: 7px 11px; margin: 3px;
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(20,20,40,0.6); color: #f0f0ff;
+  cursor: pointer; transition: 0.3s;
+  font-family: Segoe UI, sans-serif; font-size: 12px;
+}
+.mode-buttons button:hover, .mode-buttons button.active {
+  box-shadow: 0 0 10px #f0f0ff, 0 0 25px #f0f0ff;
+  background: rgba(240,240,255,0.1);
+}
+ 
+input[type="text"], input[disabled] {
+  width:100%; padding:12px; border:none; border-radius:10px;
+  background:black; color:#f0f0ff; font-size:20px;
+  text-align:right; margin-bottom:8px;
+  box-shadow:inset 0 0 10px #000; box-sizing:border-box;
+}
+.display-expr {
+  width:100%; padding:4px 12px; font-size:13px;
+  color:rgba(240,240,255,0.6); text-align:right;
+  min-height:20px; letter-spacing:1px; margin-bottom:4px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+input[type="number"] {
+  width:100%; padding:12px; border:none; border-radius:10px;
+  background:black; color:#f0f0ff; font-size:16px;
+  margin-bottom:10px; box-shadow:inset 0 0 10px #000;
+  box-sizing:border-box; outline:none;
+}
+select {
+  width:100%; padding:10px 12px; border:none; border-radius:10px;
+  background:black; color:#f0f0ff; font-size:14px;
+  margin-bottom:10px; box-sizing:border-box; outline:none; cursor:pointer;
+}
+ 
+.buttons { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.buttons-5 { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+ 
+.calc-btn {
+  padding:14px 6px; border-radius:12px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(25,25,50,0.7); color:white;
+  font-size:14px; cursor:pointer; transition:0.3s;
+  font-family:Segoe UI, sans-serif;
+  box-shadow:0 0 5px rgba(240,240,255,0.2), inset 0 0 5px rgba(255,255,255,0.05);
+  position:relative; overflow:hidden;
+}
+.ripple {
+  position:absolute; width:120px; height:120px;
+  background:radial-gradient(circle, rgba(240,240,255,0.6) 0%, transparent 70%);
+  transform:translate(-50%,-50%); border-radius:50%;
+  animation:rippleAnim 0.5s ease-out; pointer-events:none;
+}
+@keyframes rippleAnim {
+  from { transform:translate(-50%,-50%) scale(0.2); opacity:1; }
+  to   { transform:translate(-50%,-50%) scale(1.8); opacity:0; }
+}
+.calc-btn:hover { color:#f0f0ff; box-shadow:0 0 10px #f0f0ff,0 0 25px #f0f0ff,0 0 40px #f0f0ff; }
+.calc-btn:active { transform:scale(0.93); }
+ 
+.btn-clear { color:#f4a7c3; }
+.btn-clear:hover { box-shadow:0 0 10px #f4a7c3,0 0 25px rgba(244,167,195,0.5) !important; color:#f4a7c3; }
+.btn-eq { color:#f0f0ff; background:rgba(240,240,255,0.1); }
+.btn-fn { color:#f0c9b0; font-size:12px; }
+.btn-fn:hover { box-shadow:0 0 10px #e8956d,0 0 25px #e8956d !important; color:#e8956d; }
+.btn-mem { color:#a0d8ff; font-size:12px; }
+.btn-mem:hover { box-shadow:0 0 10px #a0d8ff,0 0 20px #a0d8ff !important; color:#a0d8ff; }
+ 
+/* MEMORY DISPLAY */
+.mem-display {
+  font-size:10px; color:rgba(160,216,255,0.5);
+  text-align:right; padding:2px 12px; letter-spacing:1px; min-height:14px;
+}
+ 
+.result { margin-top:10px; text-align:center; color:#e8956d; text-shadow:0 0 10px #e8956d; }
+ 
+.history-wrap { margin-top:10px; border-top:1px solid rgba(240,240,255,0.15); padding-top:8px; max-height:70px; overflow-y:auto; }
+.history-wrap::-webkit-scrollbar { width:3px; }
+.history-wrap::-webkit-scrollbar-thumb { background:#c8785a; border-radius:2px; }
+.history-label { font-size:11px; color:rgba(240,240,255,0.3); letter-spacing:2px; margin-bottom:3px; }
+.history-item { font-size:11px; color:rgba(240,240,255,0.4); text-align:right; padding:1px 0; cursor:pointer; }
+.history-item:hover { color:#f0f0ff; }
+ 
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.hidden { display:none !important; }
+ 
+.particle { position:fixed; width:3px; height:3px; background:#f0f0ff; border-radius:50%; opacity:0.6; pointer-events:none; z-index:50; animation:particleMove linear infinite; }
+ 
+/* ANIMATED NUMBER ROLL */
+@keyframes rollIn {
+  from { transform:translateY(-12px); opacity:0; }
+  to   { transform:translateY(0); opacity:1; }
+}
+.roll-anim { animation:rollIn 0.25s ease-out; }
+ 
+@keyframes particleMove { from{transform:translateY(100vh);}to{transform:translateY(-10vh);} }
+@keyframes floatConsole { 0%{transform:translateY(0);}50%{transform:translateY(-12px);}100%{transform:translateY(0);} }
+@keyframes consoleGlow {
+  0%  {box-shadow:0 0 20px rgba(240,240,255,0.25),0 0 60px rgba(210,160,120,0.25);}
+  50% {box-shadow:0 0 35px rgba(240,240,255,0.55),0 0 120px rgba(210,160,120,0.55);}
+  100%{box-shadow:0 0 20px rgba(240,240,255,0.25),0 0 60px rgba(210,160,120,0.25);}
+}
+</style>
+</head>
+<body>
+ 
+<canvas id="galaxyCanvas"></canvas>
+<div id="cursor"></div>
+<div id="cursor-dot"></div>
+ 
+<!-- SOUND TOGGLE -->
+<button id="sound-btn" onclick="toggleSound()">🔊 Sound</button>
+ 
+<!-- THEME SWITCHER -->
+<div id="theme-bar">
+  <div class="theme-dot t-galaxy"  title="Galaxy"   onclick="setTheme('galaxy')"></div>
+  <div class="theme-dot t-rosegold" title="Rose Gold" onclick="setTheme('rosegold')"></div>
+  <div class="theme-dot t-ocean"   title="Ocean"    onclick="setTheme('ocean')"></div>
+</div>
+ 
+<div class="container">
+  <div class="brand-header">
+    <div class="brand-title">Nur × Yatan.exe</div>
+    <div class="brand-sub">AY 11:11</div>
+    <div class="brand-function">Finance Calculator</div>
+    <div class="brand-tagline">Inspired by Yatan — the idea behind this system</div>
+  </div>
+  <div class="status-bar" id="statusBar">
+    <div class="status-left">
+      <div class="status-dot" id="sessionDot"></div>
+      <span class="status-label">Session Active</span>
+    </div>
+    <span class="status-time" id="clock">--:-- --</span>
+  </div>
+  <div class="wish-msg" id="wishMsg">✦ Make a wish ✦</div>
+  <div id="hearts-container"></div>
+ 
+  <div class="mode-buttons">
+    <button onclick="showMode('calc',this)" class="active">Calc</button>
+    <button onclick="showMode('sci',this)">Sci</button>
+    <button onclick="showMode('compound',this)">Compound</button>
+    <button onclick="showMode('fx',this)">FX</button>
+    <button onclick="showMode('emi',this)">EMI</button>
+    <button onclick="showMode('sip',this)">SIP</button>
+    <button onclick="showMode('gst',this)">GST</button>
+    <button onclick="showMode('pnl',this)">P&amp;L</button>
+  </div>
+ 
+  <!-- BASIC CALC -->
+  <div id="mode-calc">
+    <div class="mem-display" id="mem-display">&nbsp;</div>
+    <div class="display-expr" id="expr">&nbsp;</div>
+    <input type="text" id="display" disabled value="0">
+    <div class="buttons-5" style="margin-bottom:10px;">
+      <button class="calc-btn btn-mem" onclick="memClear()">MC</button>
+      <button class="calc-btn btn-mem" onclick="memRecall()">MR</button>
+      <button class="calc-btn btn-mem" onclick="memAdd()">M+</button>
+      <button class="calc-btn btn-mem" onclick="memSub()">M−</button>
+      <button class="calc-btn btn-mem" onclick="memStore()">MS</button>
+    </div>
+    <div class="buttons">
+      <button class="calc-btn btn-clear" onclick="clearAll()">AC</button>
+      <button class="calc-btn btn-clear" onclick="backspace()">&#x232B;</button>
+      <button class="calc-btn" onclick="appendVal('%')">%</button>
+      <button class="calc-btn" onclick="appendVal('/')">&#247;</button>
+      <button class="calc-btn" onclick="appendVal('7')">7</button>
+      <button class="calc-btn" onclick="appendVal('8')">8</button>
+      <button class="calc-btn" onclick="appendVal('9')">9</button>
+      <button class="calc-btn" onclick="appendVal('*')">&#215;</button>
+      <button class="calc-btn" onclick="appendVal('4')">4</button>
+      <button class="calc-btn" onclick="appendVal('5')">5</button>
+      <button class="calc-btn" onclick="appendVal('6')">6</button>
+      <button class="calc-btn" onclick="appendVal('-')">&#8722;</button>
+      <button class="calc-btn" onclick="appendVal('1')">1</button>
+      <button class="calc-btn" onclick="appendVal('2')">2</button>
+      <button class="calc-btn" onclick="appendVal('3')">3</button>
+      <button class="calc-btn" onclick="appendVal('+')">+</button>
+      <button class="calc-btn" onclick="appendVal('0')" style="grid-column:span 2;">0</button>
+      <button class="calc-btn" onclick="appendVal('.')">.</button>
+      <button class="calc-btn btn-eq" onclick="calculate()">=</button>
+    </div>
+    <div class="history-wrap">
+      <div class="history-label">// HISTORY</div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+ 
+  <!-- SCIENTIFIC -->
+  <div id="mode-sci" class="hidden">
+    <div class="display-expr" id="sci-expr">&nbsp;</div>
+    <input type="text" id="sci-display" disabled value="0">
+    <div class="buttons">
+      <button class="calc-btn btn-clear" onclick="sciClear()">AC</button>
+      <button class="calc-btn btn-clear" onclick="sciBackspace()">&#x232B;</button>
+      <button class="calc-btn btn-fn" onclick="sciFunc('sqrt')">&#x221A;</button>
+      <button class="calc-btn" onclick="sciAppend('/')">&#247;</button>
+      <button class="calc-btn btn-fn" onclick="sciFunc('sin')">sin</button>
+      <button class="calc-btn btn-fn" onclick="sciFunc('cos')">cos</button>
+      <button class="calc-btn btn-fn" onclick="sciFunc('tan')">tan</button>
+      <button class="calc-btn" onclick="sciAppend('*')">&#215;</button>
+      <button class="calc-btn btn-fn" onclick="sciFunc('log')">log</button>
+      <button class="calc-btn btn-fn" onclick="sciFunc('ln')">ln</button>
+      <button class="calc-btn btn-fn" onclick="sciAppend('**2')">x&#178;</button>
+      <button class="calc-btn" onclick="sciAppend('-')">&#8722;</button>
+      <button class="calc-btn btn-fn" onclick="sciInsertPi()">&#x3C0;</button>
+      <button class="calc-btn btn-fn" onclick="sciToggleSign()">+/&#8722;</button>
+      <button class="calc-btn" onclick="sciAppend('%')">%</button>
+      <button class="calc-btn" onclick="sciAppend('+')">+</button>
+      <button class="calc-btn" onclick="sciAppend('7')">7</button>
+      <button class="calc-btn" onclick="sciAppend('8')">8</button>
+      <button class="calc-btn" onclick="sciAppend('9')">9</button>
+      <button class="calc-btn" onclick="sciAppend('4')">4</button>
+      <button class="calc-btn" onclick="sciAppend('5')">5</button>
+      <button class="calc-btn" onclick="sciAppend('6')">6</button>
+      <button class="calc-btn" onclick="sciAppend('1')">1</button>
+      <button class="calc-btn" onclick="sciAppend('2')">2</button>
+      <button class="calc-btn" onclick="sciAppend('3')">3</button>
+      <button class="calc-btn" onclick="sciAppend('0')" style="grid-column:span 2;">0</button>
+      <button class="calc-btn btn-eq" onclick="sciCalculate()">=</button>
+    </div>
+  </div>
+ 
+  <!-- COMPOUND -->
+  <div id="mode-compound" class="hidden">
+    <input type="number" id="cp-principal" placeholder="Principal &#8377;">
+    <div class="two-col">
+      <input type="number" id="cp-rate" placeholder="Rate %">
+      <input type="number" id="cp-years" placeholder="Years">
+    </div>
+    <select id="cp-freq">
+      <option value="1">Annually</option>
+      <option value="4">Quarterly</option>
+      <option value="12" selected>Monthly</option>
+      <option value="365">Daily</option>
+    </select>
+    <button class="calc-btn" onclick="calcCompound()" style="width:100%;margin-bottom:10px;">Calculate Growth</button>
+    <div class="result" id="compoundResult"></div>
+  </div>
+ 
+  <!-- FX -->
+  <div id="mode-fx" class="hidden">
+    <input type="number" id="fx-amount" placeholder="Amount">
+    <div class="two-col">
+      <select id="fx-from">
+        <option value="INR" selected>INR &#8377;</option>
+        <option value="USD">USD $</option>
+        <option value="EUR">EUR &#8364;</option>
+        <option value="GBP">GBP &#163;</option>
+        <option value="JPY">JPY &#165;</option>
+        <option value="AED">AED</option>
+        <option value="CAD">CAD C$</option>
+        <option value="AUD">AUD A$</option>
+        <option value="SGD">SGD S$</option>
+      </select>
+      <select id="fx-to">
+        <option value="USD" selected>USD $</option>
+        <option value="INR">INR &#8377;</option>
+        <option value="EUR">EUR &#8364;</option>
+        <option value="GBP">GBP &#163;</option>
+        <option value="JPY">JPY &#165;</option>
+        <option value="AED">AED</option>
+        <option value="CAD">CAD C$</option>
+        <option value="AUD">AUD A$</option>
+        <option value="SGD">SGD S$</option>
+      </select>
+    </div>
+    <button class="calc-btn" onclick="convertFX()" style="width:100%;margin-bottom:10px;">Convert</button>
+    <div class="result" id="fx-result"></div>
+  </div>
+ 
+  <!-- EMI -->
+  <div id="mode-emi" class="hidden">
+    <input type="number" id="emi-principal" placeholder="Loan Amount &#8377;">
+    <div class="two-col">
+      <input type="number" id="emi-rate" placeholder="Annual Rate %">
+      <input type="number" id="emi-months" placeholder="Months">
+    </div>
+    <button class="calc-btn" onclick="calcEMI()" style="width:100%;margin-bottom:10px;">Calculate EMI</button>
+    <div class="result" id="emi-result"></div>
+  </div>
+ 
+  <!-- SIP -->
+  <div id="mode-sip" class="hidden">
+    <input type="number" id="sip-monthly" placeholder="Monthly Investment &#8377;">
+    <div class="two-col">
+      <input type="number" id="sip-rate" placeholder="Annual Return %">
+      <input type="number" id="sip-years" placeholder="Years">
+    </div>
+    <button class="calc-btn" onclick="calcSIP()" style="width:100%;margin-bottom:10px;">Calculate SIP</button>
+    <div class="result" id="sip-result"></div>
+  </div>
+ 
+  <!-- GST -->
+  <div id="mode-gst" class="hidden">
+    <input type="number" id="gst-amount" placeholder="Amount &#8377;">
+    <select id="gst-rate">
+      <option value="5">GST 5%</option>
+      <option value="12">GST 12%</option>
+      <option value="18" selected>GST 18%</option>
+      <option value="28">GST 28%</option>
+    </select>
+    <div class="two-col" style="margin-bottom:10px;">
+      <button class="calc-btn" onclick="calcGST('add')">Add GST</button>
+      <button class="calc-btn" onclick="calcGST('remove')">Remove GST</button>
+    </div>
+    <div class="result" id="gst-result"></div>
+  </div>
+ 
+  <!-- P&L -->
+  <div id="mode-pnl" class="hidden">
+    <div class="two-col">
+      <input type="number" id="pnl-buy"  placeholder="Buy Price &#8377;">
+      <input type="number" id="pnl-sell" placeholder="Sell Price &#8377;">
+    </div>
+    <input type="number" id="pnl-qty" placeholder="Quantity">
+    <div class="two-col">
+      <input type="number" id="pnl-buy-charges"  placeholder="Buy Charges &#8377;">
+      <input type="number" id="pnl-sell-charges" placeholder="Sell Charges &#8377;">
+    </div>
+    <button class="calc-btn" onclick="calcPNL()" style="width:100%;margin-bottom:10px;margin-top:10px;">Calculate P&amp;L</button>
+    <div class="result" id="pnl-result"></div>
+  </div>
+ 
+</div>
+ 
+<script>
+/* ---- CLOCK + 11:11 MAGIC ---- */
+var was1111=false;
+function updateClock(){
+  var now=new Date();
+  var h=now.getHours(), m=now.getMinutes();
+  var ampm=h>=12?'PM':'AM';
+  var h12=h%12||12;
+  var timeStr=(h12<10?'0':'')+h12+':'+(m<10?'0':'')+m+' '+ampm;
+  var is1111=(h12===11&&m===11);
+  var clockEl=document.getElementById('clock');
+  var dotEl=document.getElementById('sessionDot');
+  var wishEl=document.getElementById('wishMsg');
+  clockEl.textContent=timeStr;
+  if(is1111){
+    clockEl.classList.add('magic');
+    dotEl.classList.add('magic');
+    wishEl.classList.add('show');
+    if(!was1111) spawnHearts();
+    was1111=true;
+  } else {
+    clockEl.classList.remove('magic');
+    dotEl.classList.remove('magic');
+    wishEl.classList.remove('show');
+    was1111=false;
+  }
+}
+function spawnHearts(){
+  var container=document.getElementById('hearts-container');
+  var emojis=['♡','♥','💗','💓','🤍'];
+  for(var i=0;i<12;i++){
+    (function(i){
+      setTimeout(function(){
+        var h=document.createElement('div');
+        h.className='heart';
+        h.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+        h.style.left=(10+Math.random()*80)+'%';
+        h.style.bottom='60px';
+        h.style.animationDelay=(Math.random()*0.5)+'s';
+        h.style.fontSize=(10+Math.random()*10)+'px';
+        h.style.color=Math.random()>0.5?'#f0f0ff':'#e8956d';
+        container.appendChild(h);
+        setTimeout(function(){h.remove();},3000);
+      },i*180);
+    })(i);
+  }
+}
+setInterval(updateClock,1000);
+updateClock();
+ 
+/* ---- PARTICLES ---- */
+for(var i=0;i<20;i++){
+  var p=document.createElement("div"); p.className="particle";
+  p.style.left=Math.random()*100+"vw";
+  p.style.animationDuration=(5+Math.random()*15)+"s";
+  document.body.appendChild(p);
+}
+ 
+/* ---- CUSTOM CURSOR ---- */
+var cur=document.getElementById('cursor'), curDot=document.getElementById('cursor-dot');
+document.addEventListener('mousemove',function(e){
+  cur.style.left=e.clientX+'px'; cur.style.top=e.clientY+'px';
+  curDot.style.left=e.clientX+'px'; curDot.style.top=e.clientY+'px';
+});
+document.addEventListener('mousedown',function(){ cur.classList.add('click'); });
+document.addEventListener('mouseup',function(){ cur.classList.remove('click'); });
+ 
+/* ---- SOUND ---- */
+var soundOn=true;
+var AudioCtx=window.AudioContext||window.webkitAudioContext;
+var actx=AudioCtx?new AudioCtx():null;
+function toggleSound(){ soundOn=!soundOn; document.getElementById('sound-btn').textContent=(soundOn?'🔊':'🔇')+' Sound'; }
+function playClick(){
+  if(!soundOn||!actx)return;
+  if(actx.state==='suspended')actx.resume();
+  /* soft warm tap — triangle wave, short decay */
+  var o=actx.createOscillator(), g=actx.createGain();
+  o.connect(g); g.connect(actx.destination);
+  o.frequency.value=740; o.type='triangle';
+  g.gain.setValueAtTime(0.04,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+0.12);
+  o.start(); o.stop(actx.currentTime+0.12);
+}
+function playSuccess(){
+  if(!soundOn||!actx)return;
+  if(actx.state==='suspended')actx.resume();
+  /* soft pentatonic chime: C5 E5 G5 — warm triangle, gentle */
+  [523,659,784].forEach(function(f,i){
+    var o=actx.createOscillator(), g=actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    o.frequency.value=f; o.type='triangle';
+    var t=actx.currentTime+i*0.11;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(0.05,t+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.35);
+    o.start(t); o.stop(t+0.35);
+  });
+}
+ 
+/* ---- THEME ---- */
+var themes={
+  galaxy:  {bg:'#000008',band:[65,35,140], core:[255,195,110],nbs:[[110,30,255],[0,175,255],[255,50,155],[50,255,190],[195,90,255]]},
+  rosegold:{bg:'#00000e',band:[80,20,60], core:[220,100,140],nbs:[[180,60,100],[150,40,90],[200,80,120],[160,50,100],[190,70,110]]},
+  ocean:   {bg:'#000510',band:[0,40,120],  core:[80,180,255], nbs:[[0,100,255],[0,150,220],[20,80,200],[0,180,255],[30,120,255]]}
+};
+var currentTheme='galaxy';
+function setTheme(t){ currentTheme=t; }
+ 
+/* ---- MEMORY ---- */
+var mem=0;
+function updateMemDisplay(){ document.getElementById('mem-display').textContent=mem!==0?'M: '+mem:''; }
+function memStore(){ mem=parseFloat(document.getElementById('display').value)||0; playClick(); updateMemDisplay(); }
+function memRecall(){ expr=String(mem); updateDisplay(String(mem),''); playClick(); }
+function memAdd(){ mem+=parseFloat(document.getElementById('display').value)||0; playClick(); updateMemDisplay(); }
+function memSub(){ mem-=parseFloat(document.getElementById('display').value)||0; playClick(); updateMemDisplay(); }
+function memClear(){ mem=0; playClick(); updateMemDisplay(); }
+ 
+/* ---- MODE SWITCH ---- */
+function showMode(mode,btn){
+  ['calc','sci','compound','fx','emi','sip','gst','pnl'].forEach(function(m){
+    document.getElementById('mode-'+m).classList.add('hidden');
+  });
+  document.querySelectorAll('.mode-buttons button').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('mode-'+mode).classList.remove('hidden');
+  btn.classList.add('active');
+  playClick();
+}
+ 
+/* ---- ANIMATED NUMBER ROLL ---- */
+function rollDisplay(elId,val){
+  var el=document.getElementById(elId);
+  el.classList.remove('roll-anim');
+  void el.offsetWidth;
+  el.value=val;
+  el.classList.add('roll-anim');
+}
+ 
+/* ---- BASIC CALC ---- */
+var expr='',justCalc=false;
+function updateDisplay(val,exprVal){
+  document.getElementById('display').value=val||'0';
+  document.getElementById('expr').textContent=exprVal||'\u00a0';
+}
+function appendVal(v){
+  if(justCalc&&(v>='0'&&v<='9'||v==='.'))expr='';
+  justCalc=false;
+  if(v==='%'){try{expr=String(eval(expr)/100);}catch(e){expr+='/100';}}
+  else expr+=v;
+  var pretty=expr.replace(/\*/g,'×').replace(/\//g,'÷');
+  document.getElementById('display').value=pretty||'0';
+  document.getElementById('expr').textContent=pretty;
+  playClick();
+}
+function clearAll(){ expr='';justCalc=false; document.getElementById('display').value='0'; document.getElementById('expr').textContent='\u00a0'; playClick(); }
+function backspace(){
+  if(justCalc){clearAll();return;}
+  expr=expr.slice(0,-1);
+  var pretty=expr.replace(/\*/g,'×').replace(/\//g,'÷')||'0';
+  document.getElementById('display').value=pretty;
+  document.getElementById('expr').textContent=expr?pretty:'\u00a0';
+  playClick();
+}
+function calculate(){
+  if(!expr){updateDisplay('0','');return;}
+  try{
+    var prev=expr;
+    var result=eval(expr);
+    if(!isFinite(result))throw"e";
+    result=parseFloat(result.toFixed(10));
+    var pretty=prev.replace(/\*/g,'×').replace(/\//g,'÷');
+    addHistory(pretty+' = '+result);
+    document.getElementById('expr').textContent=pretty+' =';
+    rollDisplay('display',String(result));
+    expr=String(result);justCalc=true;
+    playSuccess();
+  }catch(e){
+    document.getElementById('display').value='Error';
+    document.getElementById('expr').textContent='\u00a0';
+    expr='';
+  }
+}
+var histArr=[];
+function addHistory(item){
+  histArr.unshift(item);if(histArr.length>10)histArr.pop();
+  var list=document.getElementById("historyList");
+  list.innerHTML=histArr.map(function(h){
+    var v=h.split('=').pop().trim();
+    return '<div class="history-item" onclick="expr=\''+v+'\';updateDisplay(\''+v+'\',\'\')">'+h+'</div>';
+  }).join('');
+}
+ 
+/* ---- SCIENTIFIC ---- */
+var sciExpr='',sciJustCalc=false;
+function sciUpdateDisplay(val,exp){
+  document.getElementById('sci-display').value=val||'0';
+  document.getElementById('sci-expr').textContent=exp||'\u00a0';
+}
+function sciAppend(v){
+  if(sciJustCalc&&(v>='0'&&v<='9'||v==='.'))sciExpr='';
+  sciJustCalc=false;
+  if(v==='%'){try{sciExpr=String(eval(sciExpr)/100);}catch(e){sciExpr+='/100';}}
+  else sciExpr+=v;
+  sciUpdateDisplay(sciExpr.replace(/\*/g,'×').replace(/\//g,'÷'),'');
+  playClick();
+}
+function sciFunc(fn){
+  sciJustCalc=false;
+  try{
+    var val=parseFloat(Function('"use strict";return('+sciExpr+')')());
+    var result;
+    if(fn==='sin')result=Math.sin(val*Math.PI/180);
+    else if(fn==='cos')result=Math.cos(val*Math.PI/180);
+    else if(fn==='tan')result=Math.tan(val*Math.PI/180);
+    else if(fn==='log')result=Math.log10(val);
+    else if(fn==='ln')result=Math.log(val);
+    else if(fn==='sqrt')result=Math.sqrt(val);
+    result=parseFloat(result.toFixed(10));
+    sciExpr=String(result);
+    rollDisplay('sci-display',String(result));
+    document.getElementById('sci-expr').textContent=fn+'('+val+')';
+    sciJustCalc=true; playSuccess();
+  }catch(e){sciUpdateDisplay('Error','');}
+}
+function sciInsertPi(){sciExpr+=Math.PI;sciUpdateDisplay(sciExpr,'');playClick();}
+function sciToggleSign(){sciExpr=sciExpr.startsWith('-')?sciExpr.slice(1):'-'+sciExpr;sciUpdateDisplay(sciExpr,'');}
+function sciClear(){sciExpr='';sciJustCalc=false;sciUpdateDisplay('0','');playClick();}
+function sciBackspace(){
+  if(sciJustCalc){sciClear();return;}
+  sciExpr=sciExpr.slice(0,-1);
+  sciUpdateDisplay(sciExpr.replace(/\*/g,'×').replace(/\//g,'÷')||'0','');
+  playClick();
+}
+function sciCalculate(){
+  if(!sciExpr)return;
+  try{
+    var result=Function('"use strict";return('+sciExpr+')')();
+    result=parseFloat(result.toFixed(10));
+    sciExpr=String(result);
+    rollDisplay('sci-display',String(result));
+    sciJustCalc=true; playSuccess();
+  }catch(e){sciUpdateDisplay('Error','');sciExpr='';}
+}
+ 
+/* ---- COMPOUND ---- */
+function calcCompound(){
+  var p=parseFloat(document.getElementById('cp-principal').value);
+  var r=parseFloat(document.getElementById('cp-rate').value)/100;
+  var t=parseFloat(document.getElementById('cp-years').value);
+  var n=parseInt(document.getElementById('cp-freq').value);
+  var el=document.getElementById('compoundResult');
+  if(isNaN(p)||isNaN(r)||isNaN(t)){el.innerHTML='Enter valid values';return;}
+  var A=p*Math.pow(1+r/n,n*t), gain=A-p;
+  el.innerHTML='Future Value: &#8377; '+A.toLocaleString('en-IN',{maximumFractionDigits:2})+'<br><small>&#9650; &#8377;'+gain.toLocaleString('en-IN',{maximumFractionDigits:2})+' gain</small>';
+  el.style.transform='scale(1.1)';el.style.transition='0.4s';
+  setTimeout(function(){el.style.transform='scale(1)';},400);
+  playSuccess();
+}
+ 
+/* ---- FX ---- */
+var FX={USD:1,EUR:0.92,GBP:0.79,INR:83.5,JPY:150.2,AED:3.67,CAD:1.36,AUD:1.53,SGD:1.34};
+function convertFX(){
+  var amount=parseFloat(document.getElementById('fx-amount').value);
+  var from=document.getElementById('fx-from').value, to=document.getElementById('fx-to').value;
+  var el=document.getElementById('fx-result');
+  if(isNaN(amount)){el.innerHTML='Enter a valid amount';return;}
+  var result=(amount/FX[from])*FX[to], rate=(FX[to]/FX[from]).toFixed(4);
+  el.innerHTML=result.toLocaleString(undefined,{maximumFractionDigits:4})+' '+to+'<br><small>1 '+from+' &#8776; '+rate+' '+to+'</small>';
+  playSuccess();
+}
+ 
+/* ---- EMI ---- */
+function calcEMI(){
+  var P=parseFloat(document.getElementById('emi-principal').value);
+  var r=parseFloat(document.getElementById('emi-rate').value)/100/12;
+  var n=parseInt(document.getElementById('emi-months').value);
+  var el=document.getElementById('emi-result');
+  if(isNaN(P)||isNaN(r)||isNaN(n)){el.innerHTML='Enter valid values';return;}
+  var emi=r===0?P/n:P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  var total=emi*n, interest=total-P;
+  el.innerHTML='EMI: &#8377; '+emi.toLocaleString('en-IN',{maximumFractionDigits:2})+'<br><small>Total: &#8377;'+total.toLocaleString('en-IN',{maximumFractionDigits:2})+' &nbsp;|&nbsp; Interest: &#8377;'+interest.toLocaleString('en-IN',{maximumFractionDigits:2})+'</small>';
+  el.style.transform='scale(1.1)';el.style.transition='0.4s';
+  setTimeout(function(){el.style.transform='scale(1)';},400);
+  playSuccess();
+}
+ 
+/* ---- SIP ---- */
+function calcSIP(){
+  var m=parseFloat(document.getElementById('sip-monthly').value);
+  var r=parseFloat(document.getElementById('sip-rate').value)/100/12;
+  var n=parseFloat(document.getElementById('sip-years').value)*12;
+  var el=document.getElementById('sip-result');
+  if(isNaN(m)||isNaN(r)||isNaN(n)){el.innerHTML='Enter valid values';return;}
+  var fv=r===0?m*n:m*(Math.pow(1+r,n)-1)/r*(1+r);
+  var invested=m*n, gain=fv-invested;
+  el.innerHTML='Future Value: &#8377; '+fv.toLocaleString('en-IN',{maximumFractionDigits:2})+'<br><small>Invested: &#8377;'+invested.toLocaleString('en-IN',{maximumFractionDigits:2})+' &nbsp;|&nbsp; Gain: &#8377;'+gain.toLocaleString('en-IN',{maximumFractionDigits:2})+'</small>';
+  el.style.transform='scale(1.1)';el.style.transition='0.4s';
+  setTimeout(function(){el.style.transform='scale(1)';},400);
+  playSuccess();
+}
+ 
+/* ---- GST ---- */
+function calcGST(mode){
+  var amt=parseFloat(document.getElementById('gst-amount').value);
+  var rate=parseFloat(document.getElementById('gst-rate').value)/100;
+  var el=document.getElementById('gst-result');
+  if(isNaN(amt)){el.innerHTML='Enter a valid amount';return;}
+  var gstAmt,total,base;
+  if(mode==='add'){
+    gstAmt=amt*rate; total=amt+gstAmt; base=amt;
+  } else {
+    base=amt/(1+rate); gstAmt=amt-base; total=amt;
+  }
+  el.innerHTML=(mode==='add'?'Total: ':'Base: ')+'&#8377; '+(mode==='add'?total:base).toLocaleString('en-IN',{maximumFractionDigits:2})+'<br><small>GST ('+( rate*100)+'%): &#8377;'+gstAmt.toLocaleString('en-IN',{maximumFractionDigits:2})+'</small>';
+  el.style.transform='scale(1.1)';el.style.transition='0.4s';
+  setTimeout(function(){el.style.transform='scale(1)';},400);
+  playSuccess();
+}
+ 
+/* ---- P&L ---- */
+function calcPNL(){
+  var buy=parseFloat(document.getElementById('pnl-buy').value);
+  var sell=parseFloat(document.getElementById('pnl-sell').value);
+  var qty=parseFloat(document.getElementById('pnl-qty').value);
+  var bc=parseFloat(document.getElementById('pnl-buy-charges').value)||0;
+  var sc=parseFloat(document.getElementById('pnl-sell-charges').value)||0;
+  var el=document.getElementById('pnl-result');
+  if(isNaN(buy)||isNaN(sell)||isNaN(qty)){el.innerHTML='Enter valid values';return;}
+  var invested=buy*qty+bc;
+  var received=sell*qty-sc;
+  var pnl=received-invested;
+  var pct=(pnl/invested*100);
+  var isProfit=pnl>=0;
+  el.style.color=isProfit?'#6dffb3':'#ff6d6d';
+  el.style.textShadow=isProfit?'0 0 10px #6dffb3':'0 0 10px #ff6d6d';
+  el.innerHTML=(isProfit?'&#9650; Profit: ':'&#9660; Loss: ')+'&#8377; '+Math.abs(pnl).toLocaleString('en-IN',{maximumFractionDigits:2})
+    +'<br><small>Return: '+(isProfit?'+':'')+pct.toFixed(2)+'% &nbsp;|&nbsp; Invested: &#8377;'+invested.toLocaleString('en-IN',{maximumFractionDigits:2})+'</small>';
+  el.style.transform='scale(1.1)';el.style.transition='0.4s';
+  setTimeout(function(){el.style.transform='scale(1)';},400);
+  playSuccess();
+}
+ 
+/* ---- KEYBOARD ---- */
+document.addEventListener('keydown',function(e){
+  var isSci=!document.getElementById('mode-sci').classList.contains('hidden');
+  var isCalc=!document.getElementById('mode-calc').classList.contains('hidden');
+  if(!isCalc&&!isSci)return;
+  var ap=isSci?sciAppend:appendVal;
+  var cal=isSci?sciCalculate:calculate;
+  var cl=isSci?sciClear:clearAll;
+  var bk=isSci?sciBackspace:backspace;
+  if(e.key>='0'&&e.key<='9')ap(e.key);
+  else if(e.key==='.')ap('.');
+  else if(e.key==='+')ap('+');
+  else if(e.key==='-')ap('-');
+  else if(e.key==='*')ap('*');
+  else if(e.key==='/'){e.preventDefault();ap('/');}
+  else if(e.key==='%')ap('%');
+  else if(e.key==='Enter'||e.key==='=')cal();
+  else if(e.key==='Backspace')bk();
+  else if(e.key==='Escape')cl();
+});
+ 
+/* ---- GALAXY BACKGROUND ---- */
+(function(){
+  var cv=document.getElementById('galaxyCanvas');
+  var cx=cv.getContext('2d');
+  var W,H,stars=[],shooters=[];
+ 
+  function resize(){ W=cv.width=window.innerWidth; H=cv.height=window.innerHeight; buildStars(); }
+ 
+  var sd=99;
+  function rnd(){sd=(sd*1664525+1013904223)>>>0;return sd/4294967295;}
+ 
+  function buildStars(){
+    sd=99;stars=[];
+    var total=Math.min(2500,Math.floor(W*H/300));
+    for(var i=0;i<total;i++){
+      var inBand=rnd()<0.62, x, y;
+      if(inBand){
+        var tt=rnd();
+        x=(W*(0.12+tt*0.76))+(rnd()-0.5)*W*0.32;
+        y=(H*(0.80-tt*0.60))+(rnd()-0.5)*H*0.22;
+      }else{x=rnd()*W;y=rnd()*H;}
+      var br=rnd(), sz=br<0.82?rnd()*0.75+0.15:rnd()*1.8+0.7;
+      var tp=rnd(),r,g,b;
+      if(tp<0.42){r=200+rnd()*55;g=220+rnd()*35;b=255;}
+      else if(tp<0.65){r=255;g=245+rnd()*10;b=215+rnd()*40;}
+      else if(tp<0.80){r=255;g=185+rnd()*55;b=100+rnd()*90;}
+      else{r=185+rnd()*70;g=165+rnd()*70;b=255;}
+      stars.push({x:x,y:y,sz:sz,r:r|0,g:g|0,b:b|0,alpha:0.18+br*0.82,ph:rnd()*Math.PI*2,big:sz>1.2&&br>0.6});
+    }
+  }
+ 
+  function frame(now){
+    var t=now*0.0001;
+    var th=themes[currentTheme];
+    cx.clearRect(0,0,W,H);
+    cx.fillStyle=th.bg; cx.fillRect(0,0,W,H);
+ 
+    /* band */
+    var bc=th.band;
+    var band=cx.createLinearGradient(W*0.08,H*0.82,W*0.92,H*0.08);
+    band.addColorStop(0,'rgba(0,0,0,0)');
+    band.addColorStop(0.15,'rgba('+Math.floor(bc[0]*0.3)+','+Math.floor(bc[1]*0.3)+','+Math.floor(bc[2]*0.3)+',0.22)');
+    band.addColorStop(0.50,'rgba('+bc[0]+','+bc[1]+','+bc[2]+',0.40)');
+    band.addColorStop(0.85,'rgba('+Math.floor(bc[0]*0.3)+','+Math.floor(bc[1]*0.3)+','+Math.floor(bc[2]*0.3)+',0.22)');
+    band.addColorStop(1,'rgba(0,0,0,0)');
+    cx.fillStyle=band;cx.fillRect(0,0,W,H);
+ 
+    /* core */
+    var cc=th.core;
+    var core=cx.createRadialGradient(W*0.43,H*0.52,0,W*0.43,H*0.52,W*0.28);
+    core.addColorStop(0,'rgba('+cc[0]+','+cc[1]+','+cc[2]+',0.28)');
+    core.addColorStop(0.4,'rgba('+Math.floor(cc[0]*0.6)+','+Math.floor(cc[1]*0.6)+','+Math.floor(cc[2]*0.6)+',0.14)');
+    core.addColorStop(1,'rgba(0,0,0,0)');
+    cx.fillStyle=core;cx.fillRect(0,0,W,H);
+ 
+    /* nebulas at corners */
+    var npos=[{ox:0.04,oy:0.75},{ox:0.94,oy:0.18},{ox:0.90,oy:0.88},{ox:0.05,oy:0.10},{ox:0.50,oy:0.98}];
+    var speeds=[0.009,0.007,0.011,0.008,0.006];
+    npos.forEach(function(n,i){
+      var nc=th.nbs[i];
+      var nx=W*n.ox+Math.sin(t*speeds[i])*W*0.012;
+      var ny=H*n.oy+Math.cos(t*speeds[i])*H*0.012;
+      var pulse=0.80+0.20*Math.sin(t*speeds[i]*2);
+      var rx=W*(0.14+i*0.01), ry=H*(0.10+i*0.01);
+      var ng=cx.createRadialGradient(nx,ny,0,nx,ny,rx);
+      ng.addColorStop(0,'rgba('+nc[0]+','+nc[1]+','+nc[2]+','+(0.18*pulse).toFixed(3)+')');
+      ng.addColorStop(0.5,'rgba('+nc[0]+','+nc[1]+','+nc[2]+','+(0.09*pulse).toFixed(3)+')');
+      ng.addColorStop(1,'rgba(0,0,0,0)');
+      cx.fillStyle=ng;cx.beginPath();cx.ellipse(nx,ny,rx,ry,0,0,Math.PI*2);cx.fill();
+    });
+ 
+    /* stars */
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];
+      var a=s.alpha*(0.92+0.08*Math.sin(t*0.3+s.ph));
+      if(s.big){
+        var glow=cx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.sz*4);
+        glow.addColorStop(0,'rgba('+s.r+','+s.g+','+s.b+','+(a*0.8).toFixed(3)+')');
+        glow.addColorStop(1,'rgba(0,0,0,0)');
+        cx.fillStyle=glow;cx.beginPath();cx.arc(s.x,s.y,s.sz*4,0,Math.PI*2);cx.fill();
+        cx.strokeStyle='rgba('+s.r+','+s.g+','+s.b+','+(a*0.25).toFixed(3)+')';
+        cx.lineWidth=0.5;
+        cx.beginPath();cx.moveTo(s.x-s.sz*5,s.y);cx.lineTo(s.x+s.sz*5,s.y);cx.stroke();
+        cx.beginPath();cx.moveTo(s.x,s.y-s.sz*5);cx.lineTo(s.x,s.y+s.sz*5);cx.stroke();
+      }
+      cx.beginPath();cx.arc(s.x,s.y,s.sz,0,Math.PI*2);
+      cx.fillStyle='rgba('+s.r+','+s.g+','+s.b+','+a.toFixed(3)+')';cx.fill();
+    }
+ 
+    /* shooting stars */
+    if(Math.random()<0.002&&shooters.length<2){
+      var ang=0.15+Math.random()*0.40;
+      shooters.push({x:W*(0.05+Math.random()*0.85),y:H*(0.02+Math.random()*0.38),
+        vx:Math.cos(ang)*(8+Math.random()*11),vy:Math.sin(ang)*(3+Math.random()*7),
+        life:1.0,decay:0.013+Math.random()*0.020,len:110+Math.random()*170});
+    }
+    shooters=shooters.filter(function(s){return s.life>0;});
+    shooters.forEach(function(s){
+      var tx=s.x-s.vx*(s.len/13),ty=s.y-s.vy*(s.len/13);
+      var sg=cx.createLinearGradient(tx,ty,s.x,s.y);
+      sg.addColorStop(0,'rgba(255,255,255,0)');
+      sg.addColorStop(0.5,'rgba(200,235,255,'+(s.life*0.55).toFixed(2)+')');
+      sg.addColorStop(1,'rgba(255,255,255,'+(s.life*0.95).toFixed(2)+')');
+      cx.strokeStyle=sg;cx.lineWidth=1.8*s.life;cx.lineCap='round';
+      cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(s.x,s.y);cx.stroke();
+      s.x+=s.vx;s.y+=s.vy;s.life-=s.decay;
+    });
+  }
+ 
+  var lastTime=performance.now(), interval=1000/45;
+  function animate(now){ if(now-lastTime>interval){lastTime=now;frame(now);} requestAnimationFrame(animate); }
+  window.addEventListener('resize',resize); resize(); requestAnimationFrame(animate);
+})();
+ 
+/* ---- RIPPLE ---- */
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.calc-btn');
+  if(!btn)return;
+  var ripple=document.createElement("span"); ripple.className="ripple";
+  btn.appendChild(ripple);
+  var rect=btn.getBoundingClientRect();
+  ripple.style.left=(e.clientX-rect.left)+"px";
+  ripple.style.top=(e.clientY-rect.top)+"px";
+  setTimeout(function(){ripple.remove();},500);
+});
+</script>
+</body>
+</html>
+ 
